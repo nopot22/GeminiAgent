@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys
+from google.genai import types
+
 def run_python_file(working_directory, file_path, args=[]):
     abs_working_dir = os.path.abspath(working_directory)
     abs_file_path = os.path.abspath(os.path.join(working_directory, file_path))
@@ -40,3 +42,24 @@ def run_python_file(working_directory, file_path, args=[]):
         return final_string
     except Exception as e:
         return f"Error: executing Python file: {e}"
+    
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs a specified Python file with the Python3 intepreter along with any command line arguments, constrained to the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The directory to list files from, relative to the working directory. If not provided, lists files in the working directory itself.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                description="An optional array of string to be used as command line arugments for the specifed Python file.",
+                items=types.Schema(
+                    type=types.Type.STRING
+                )
+            ),
+        },
+    ),
+)

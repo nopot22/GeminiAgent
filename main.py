@@ -4,6 +4,9 @@ from google import genai
 from google.genai import types
 import sys
 from functions.get_files_info import get_files_info, schema_get_files_info
+from functions.get_file_content import schema_get_file_content
+from functions.write_file import schema_write_file
+from functions.run_python_file import schema_run_python_file
 
 load_dotenv()
 def main():
@@ -17,6 +20,9 @@ You are a helpful AI coding agent.
 When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
 - List files and directories
+- Read the content of a file
+- Write to a Python file (create or update)
+- Run a specified Python file with optional arguments
 
 All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
 """
@@ -37,6 +43,9 @@ All paths you provide should be relative to the working directory. You do not ne
     available_functions = types.Tool(
     function_declarations=[
         schema_get_files_info,
+        schema_get_file_content,
+        schema_write_file,
+        schema_run_python_file
     ]
 )
     try:
@@ -51,20 +60,22 @@ All paths you provide should be relative to the working directory. You do not ne
         print(e)
         return
 
+    if response is None or response.usage_metadata is None:
+        print('response is malformed')
+        return
+    
     if verbose_flag:
         print(f'User prompt: {prompt}')
         print(f'Prompt Tokens: {response.usage_metadata.prompt_token_count}')
         print(f'Response Tokens: {response.usage_metadata.candidates_token_count}')
 
-    if response.function_calls:#print out functions used, if any
+    if response.function_calls: #print out functions used, if any
         for function_call_part in response.function_calls:
-            f"Calling function: {function_call_part.name}({function_call_part.args})"
-    else:#no functions used
+            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    else: #no functions used
         print(response.text)
     
-    if response is None or response.usage_metadata is None:
-        print('response is malformed')
-        return
+    
 
 
 main()
